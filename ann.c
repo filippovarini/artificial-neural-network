@@ -3,9 +3,38 @@
 /* Creates and returns a new ann. */
 ann_t *ann_create(int num_layers, int *layer_outputs)
 {
-  /**** PART 2 - QUESTION 1 ****/
-  return NULL; // delete after implementing
-  /* 4 MARKS */
+  ann_t *annPtr = malloc(sizeof(ann_t));
+  if (annPtr == NULL) 
+    return NULL;
+  
+  layer_t *prev = NULL;
+  later_t *next = NULL;
+  for (int i = 0; i < num_layers; i++) 
+  {
+    layer_t *curr = next;
+    if (i == num_layers - 1) // Output layer
+    { 
+      annPtr->output_layer = curr;
+    } else {
+      // Set up next layer
+      next = layer_create();
+      if (next == NULL) 
+        return NULL;
+    }
+    
+    if (i == 0) // Input layer 
+      annPtr->input_layer = curr;
+
+   
+    if(layer_init(curr, layer_outputs[i], prev)) // Mem Allocation failure 
+      return NULL;
+    
+    // Set connections
+    curr->prev = prev;
+    curr->next = next;
+    prev = layer;
+  }
+  return annPtr;
 }
 
 /* Frees the space allocated to ann. */
