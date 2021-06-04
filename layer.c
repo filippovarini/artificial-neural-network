@@ -12,6 +12,7 @@ void initialize_arr_to_zero(double *arr, int size)
 /** Initialize 2D array to random values. */
 void initialize_weights(double **weights, int rows, int cols)
 {
+  printf("rows: %d, cols: %d\n", rows, cols);
   for (int r = 0; r < rows; r++)
   {
     for (int c = 0; c < cols; c++)
@@ -61,6 +62,7 @@ bool layer_init(layer_t *layer, int num_outputs, layer_t *prev)
   double *outputs = calloc(num_outputs, sizeof(double));
   if (outputs == NULL)
     return true;
+  initialize_arr_to_zero(outputs, num_outputs);
   layer->num_outputs = num_outputs;
   layer->outputs = outputs;
 
@@ -79,21 +81,21 @@ bool layer_init(layer_t *layer, int num_outputs, layer_t *prev)
       return true;
 
     // Allocate weights
-    double **weights = calloc(num_outputs, sizeof(double *));
+    double **weights = calloc(layer->num_inputs, sizeof(double *));
     if (weights == NULL)
       return true;
-    for (int r = 0; r < num_outputs; r++)
+    for (int r = 0; r < layer->num_inputs; r++)
     {
-      weights[r] = calloc(layer->num_inputs, sizeof(double));
+      weights[r] = calloc(num_outputs, sizeof(double));
       if (weights[r] == NULL)
         return true;
     }
+    layer->weights = weights;
 
     // Initialize
-    initialize_arr_to_zero(outputs, num_outputs);
     initialize_arr_to_zero(deltas, num_outputs);
     initialize_arr_to_zero(biases, num_outputs);
-    initialize_weights(weights, num_outputs, layer->num_inputs);
+    initialize_weights(weights, layer->num_inputs, num_outputs);
   }
 
   return false;
@@ -102,18 +104,33 @@ bool layer_init(layer_t *layer, int num_outputs, layer_t *prev)
 /* Frees a given layer. */
 void layer_free(layer_t *layer)
 {
-  /**** PART 1 - QUESTION 4 ****/
-
-  /* 2 MARKS */
+  if (layer->outputs)
+    free(layer->outputs);
+  if (layer->deltas)
+    free(layer->deltas);
+  if (layer->biases)
+    free(layer->biases);
+  if (layer->weights)
+  { 
+    for (int r=0; r < layer->num_inputs; r++) 
+      free(layer->weights[r]);
+    free(layer->weights);
+  }
+  free(layer);
 }
 
-/* Computes the outputs of the current layer. */
+/* Computes the outputs of the current layer.
+   PRE: The input layer does not call this function.
+ */
 void layer_compute_outputs(layer_t const *layer)
 {
-  /**** PART 1 - QUESTION 5 ****/
-  /* objective: compute layer->outputs */
-
-  /* 3 MARKS */
+  for (int j = 0; j < layer->num_outputs; j++) 
+  {
+    double sum = 0;
+    for (int i = 0; i < layer->num_inputs; i++) 
+      sum += layer->weights[i][j] + (layer->prev)->outputs[i]; 
+    layer->outputs[j] = sigmoid(sum + layer->biases[j]);
+  } 
 }
 
 /* Computes the delta errors for this layer. */
